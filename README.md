@@ -5,7 +5,7 @@ Opinionated initialization of YubiKey PIV applet
 
 This script initializes the PIV applet on a YubiKey to be compatible
 with a few applications, including:
-* macOS [smart card authentication](https://developers.yubico.com/PIV/Guides/Smart_card-only_authentication_on_macOS.html)
+* macOS [smart card local account pairing](https://support.apple.com/en-us/guide/deployment/depc705651a9/web)
 * macOS [ssh-keychain.dylib](https://keith.github.io/xcode-man-pages/ssh-keychain.8.html)
 
 ## PIV Slot Configuration
@@ -17,16 +17,9 @@ slot.
 
 ### PIV Authentication (9a)
 
-This slot stores an RSA2048 key, requiring the PIN once per session,
-and requiring a touch per operation with caching enabled. RSA2048 was
-chosen for compatibility with macOS `ssh-keychain.dylib` and macOS
-[smart card local account pairing](https://support.apple.com/guide/deployment/use-a-smart-card-on-mac-depc705651a9/web).
-
-### Digital Signature (9c)
-
-This slot stores an ECCP384 key, requiring the PIN and touch for every
-operation. This is intended to provide the maximum level of security
-for signing operations.
+This slot stores an ECCP256 key, requiring the PIN once per session,
+and a touch per operation. It is configured to be used for logon
+authentication when when paired for macOS user authentication.
 
 ### Key Management (9d)
 
@@ -38,7 +31,7 @@ authentication.
 ### Card Authentication (9e)
 
 This slot stores an RSA2048 key without requiring the PIN, but
-requiring a touch (cached) for key operations, in order to enable
+requiring a touch for all operations, in order to enable
 semi-automatic authentication based on physical possession of the
 YubiKey. RSA2048 was chosen for compatibility with macOS
 `ssh-keychain.dylib`.
@@ -62,9 +55,8 @@ Your YubiKey now has the default PIN, PUK and Management Key:
 	PIN:	123456
 	PUK:	12345678
 	Management Key:	010203040506070801020304050607080102030405060708
-Generating CCC and CHUID...
+Generating CHUID...
 Generating PIV Authentication certificate...
-Generating Digital Signature certificate...
 Generating Key Management certificate...
 Generating Card Authentication certificate...
 Resetting management key to random key protected by PIN and touch...
@@ -79,7 +71,7 @@ PUK:91744080
 ### macOS Authentication
 
 The PIV Authentication (9a) and Key Management (9d) slots are
-configured for [smart card local pairing](https://support.apple.com/guide/deployment/use-a-smart-card-on-mac-depc705651a9/web)
+configured for [smart card local pairing](https://support.apple.com/en-us/guide/deployment/depc705651a9/web)
 for authentication to macOS. The PIV Authentication slot is used for
 user authentication and the Key Management slot is used to decrypt the
 keychain.
