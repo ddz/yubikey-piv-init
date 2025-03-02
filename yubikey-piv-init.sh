@@ -5,11 +5,22 @@
 # * macOS smartcard auth uses slots 9a + 9d (ECC or RSA)
 #
 
+set -euxo pipefail
+
+YKMAN=$(which ykman)
+readonly YKMAN
+
 PIN=123456
 readonly PIN
 
+NEW_PIN=$(random_digits 6)
+readonly NEW_PIN
+
 PUK=12345678
 readonly PUK
+
+NEW_PUK=$(random_digits 8)
+readonly NEW_PUK
 
 KEY=010203040506070801020304050607080102030405060708
 readonly KEY
@@ -18,7 +29,7 @@ TMPDIR=$(mktemp -d)
 readonly TMPDIR
 
 # TODO
-#readonly PIV_VERS=$(ykman piv info | grep "PIV version" | awk '{print $3}')
+#readonly PIV_VERS=$(${YKMAN} piv info | grep "PIV version" | awk '{print $3}')
 
 function generate_key() {
     local slot="$1"
@@ -28,14 +39,13 @@ function generate_key() {
     
     local rest=$*
     
-    #shellcheck disable=SC2086
-    ykman piv keys generate -m ${KEY} -P ${PIN} \
-	  -a "${alg}" ${rest} "${slot}" "${TMPDIR}/${slot}.pem"
+    ${YKMAN} piv keys generate -m ${KEY} -P ${PIN} \
+	  -a "${alg}" "$@" "${slot}" "${TMPDIR}/${slot}.pem"
 
     # Use attestation cert as the slot's certificate
-    ykman piv keys attest "${slot}" "${TMPDIR}/${slot}_cert.pem"
+    ${YKMAN} piv keys attest "${slot}" "${TMPDIR}/${slot}_cert.pem"
     
-    ykman piv certificates import -m ${KEY} -P ${PIN} \
+    ${YKMAN} piv certificates import -m ${KEY} -P ${PIN} \
 	  "${slot}" "${TMPDIR}/${slot}_cert.pem"
 }
 
@@ -47,10 +57,10 @@ function random_digits() {
 
 function main() {
     echo "Resetting PIV applet..."
-    ykman piv reset
+    ${YKMAN} piv reset
 
     echo "Generating CHUID..."
-    ykman piv objects generate chuid -m ${KEY} -P ${PIN}
+    ${YKMAN} piv objects generate chuid -m ${KEY} -P ${PIN}
 
     #
     # Generate PIV keys and use attestation certificates as their certs
@@ -72,19 +82,15 @@ function main() {
     # Reset management key, PIN, and PUK to random values
     #
     echo "Resetting management key to random key protected by PIN and touch..."
-    ykman piv access change-management-key -m ${KEY} -P ${PIN} -p -t
+    ${YKMAN} piv access change-management-key -m ${KEY} -P ${PIN} -p -t
 
     echo "Resetting PIN to a random PIN..."
-    local newpin
-    newpin=$(random_digits 6)
-    ykman piv access change-pin -P ${PIN} -n "${newpin}"
-    echo "PIN:${newpin}"
+    ${YKMAN} piv access change-pin -P ${PIN} -n "${NEW_PIN}"
+    echo "PIN:${NEW_PIN}"
 
     echo "Resetting PUK to a random PUK..."
-    local newpuk
-    newpuk=$(random_digits 8)
-    ykman piv access change-puk -p ${PUK} -n "${newpuk}"
-    echo "PUK:${newpuk}"
+    ${YKMAN} piv access change-puk -p ${PUK} -n "${NEW_PUK}"
+    echo "PUK:${NEW_PUK}"
 }
 
 main "$@"
