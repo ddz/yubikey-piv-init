@@ -17,16 +17,15 @@ slot.
 
 ### PIV Authentication (9a)
 
-This slot stores an ECCP256 key, requiring the PIN once per session,
+This slot stores an ECCP256 key, requiring the PIN once per session
 and a touch per operation. It is configured to be used for logon
 authentication when when paired for macOS user authentication.
 
 ### Key Management (9d)
 
-This slot stores an ECCP256 key, requiring the PIN once per session,
-and requiring a touch (cached) for key operations. It is configured to
-be used for keychain decryption when paired for macOS user
-authentication.
+This slot stores an ECCP256 key, requiring the PIN once per session
+and a (cached) touch for key operations. It is configured to be used
+for keychain decryption when paired for macOS user authentication.
 
 ### Card Authentication (9e)
 
